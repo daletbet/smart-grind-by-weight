@@ -377,6 +377,7 @@ async function flashFirmware() {
             startView.setUint8(offset, 0); // no firmware version
         }
         
+        currentOtaStatus = BLE_OTA_IDLE; // Reset status before sending so we don't miss the transition
         await controlChar.writeValue(startData);
         updateStatus('Sent start command, waiting for device...', 'info');
         
