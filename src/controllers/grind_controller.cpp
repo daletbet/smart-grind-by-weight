@@ -356,9 +356,10 @@ void GrindController::update() {
                     time_grind_start_ms = loop_data.now;
                     if (mode == GrindMode::TIME) {
                         switch_phase(GrindPhase::TIME_GRINDING, loop_data);
-                    } else {
-                        // Always run chute operation for weight mode
+                    } else if (prime_enabled_for_session) {
                         switch_phase(GrindPhase::PRIME, loop_data);
+                    } else {
+                        switch_phase(GrindPhase::PREDICTIVE, loop_data);
                     }
                 }
             }
