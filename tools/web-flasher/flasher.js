@@ -358,7 +358,7 @@ async function flashFirmware() {
         startView.setUint32(offset, patchData.length, true); // little-endian
         offset += 4;
         
-        startView.setUint8(offset, 0); // is_full_update = 1 (use delta path with detools patch)
+        startView.setUint8(offset, 1); // is_full_update = 1 (use delta path with detools patch)
         offset += 1;
         
         // Always send build number "1" for web flasher
