@@ -348,15 +348,17 @@ void GrindController::update() {
         case GrindPhase::TARE_CONFIRM:
             // Check if tare is complete
             if (!weight_sensor->is_tare_in_progress()) {
-                // Double confirm weights are settled
-                if (weight_sensor->is_settled()) {
+                // In time mode, skip settling check - start immediately after tare
+                // (load cell drift won't affect grinding since we only use elapsed time)
+                bool ready_to_grind = (mode == GrindMode::TIME) || weight_sensor->is_settled();
+                if (ready_to_grind) {
                     if (!grinder->is_grinding()) {
                         grinder->start();  // Ensure motor is running
                     }
                     time_grind_start_ms = loop_data.now;
                     if (mode == GrindMode::TIME) {
                         switch_phase(GrindPhase::TIME_GRINDING, loop_data);
-                    } else if (prime_enabled_for_session) {
+                    } else if (grinder_purge_mode_for_session == GrinderPurgeMode::PRIME) {
                         switch_phase(GrindPhase::PRIME, loop_data);
                     } else {
                         switch_phase(GrindPhase::PREDICTIVE, loop_data);
