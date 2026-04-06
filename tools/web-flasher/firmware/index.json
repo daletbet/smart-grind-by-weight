@@ -1,0 +1,10 @@
+[
+  {
+    "tag": "v1.5",
+    "display": "v1.5 (Time Mode Fix)",
+    "version": "1.5",
+    "prerelease": false,
+    "manifest": "firmware/smart-grind-by-weight-v1.5.manifest.json",
+    "ota": "firmware/smart-grind-by-weight-v1.5.bin"
+  }
+]
