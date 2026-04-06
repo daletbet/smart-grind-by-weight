@@ -344,11 +344,11 @@ async function flashFirmware() {
         const controlChar = await otaService.getCharacteristic(BLE_OTA_CONTROL_CHAR_UUID);
         const dataChar = await otaService.getCharacteristic(BLE_OTA_DATA_CHAR_UUID);
         
-        // Build start command: [CMD][patch_size:4][is_full_update:1][build_number_length:1][build_number:N][firmware_version_length:1][firmware_version:M]
-        const buildNumberBytes = new TextEncoder().encode("1"); // Web flasher always sends build #1
-        const versionBytes = expectedVersion ? new TextEncoder().encode(expectedVersion) : new Uint8Array(0);
+        // Build start command: [CMD][patch_size:4][is_full_update:1][build_number_length:1][build_number:N]
+        // Must match Python grinder-ble.py protocol exactly - no firmware version field
+        const buildNumberBytes = new TextEncoder().encode("0"); // No build number for web flasher
         
-        const startData = new ArrayBuffer(1 + 4 + 1 + 1 + buildNumberBytes.length + 1 + versionBytes.length);
+        const startData = new ArrayBuffer(1 + 4 + 1 + 1 + buildNumberBytes.length);
         const startView = new DataView(startData);
         let offset = 0;
         
@@ -358,24 +358,13 @@ async function flashFirmware() {
         startView.setUint32(offset, patchData.length, true); // little-endian
         offset += 4;
         
-        startView.setUint8(offset, 1); // is_full_update = 1 (use delta path with detools patch)
+        startView.setUint8(offset, 1); // is_full_update = 1 (full firmware, no delta)
         offset += 1;
         
-        // Always send build number "1" for web flasher
+        // Send build number length = 1, value = "0" (no meaningful build number for web flasher)
         startView.setUint8(offset, buildNumberBytes.length);
         offset += 1;
         new Uint8Array(startData, offset).set(buildNumberBytes);
-        offset += buildNumberBytes.length;
-        
-        // Send firmware version if available
-        if (expectedVersion) {
-            startView.setUint8(offset, versionBytes.length);
-            offset += 1;
-            new Uint8Array(startData, offset).set(versionBytes);
-            updateStatus(`Sending expected firmware version: ${expectedVersion}`, 'info');
-        } else {
-            startView.setUint8(offset, 0); // no firmware version
-        }
         
         currentOtaStatus = BLE_OTA_IDLE; // Reset status before sending so we don't miss the transition
         await controlChar.writeValue(startData);
